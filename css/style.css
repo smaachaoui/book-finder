@@ -1,22 +1,16 @@
-/* ============================================
-   VARIABLES PERSONNALISÉES
-   ============================================ */
+/* VARIABLES PERSONNALISÉES */
 :root {
-    --color-primary: rgb(95, 115, 151);
+    --color-primary: rgb(26, 54, 104);
     --color-dark: #222;
     --color-white: #fff;
 }
 
-/* ============================================
-   OVERRIDES BOOTSTRAP (si nécessaire)
-   ============================================ */
+
 header {
     background-color: var(--color-primary);
 }
 
-/* ============================================
-   MENU BURGER (100% custom)
-   ============================================ */
+/* MENU BURGER */
 .burger-menu {
     width: 40px;
     height: 30px;
