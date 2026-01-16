@@ -1,0 +1,98 @@
+/* ============================================
+   VARIABLES PERSONNALISÉES
+   ============================================ */
+:root {
+    --color-primary: rgb(95, 115, 151);
+    --color-dark: #222;
+    --color-white: #fff;
+}
+
+/* ============================================
+   OVERRIDES BOOTSTRAP (si nécessaire)
+   ============================================ */
+header {
+    background-color: var(--color-primary);
+}
+
+/* ============================================
+   MENU BURGER (100% custom)
+   ============================================ */
+.burger-menu {
+    width: 40px;
+    height: 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    z-index: 1001;
+}
+
+.burger-line {
+    width: 100%;
+    height: 2.5px;
+    background: var(--color-white);
+    border-radius: 3px;
+    transition: 0.3s;
+}
+
+.burger-menu.active span:nth-child(1) {
+    transform: translateY(11px) rotate(45deg);
+}
+
+.burger-menu.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.burger-menu.active span:nth-child(3) {
+    transform: translateY(-16px) rotate(-45deg);
+}
+
+/* Navbar mobile (custom) */
+.navbar {
+    position: absolute;
+    top: 100%;
+    right: -100%;
+    width: 250px;
+    padding: 1.25rem;
+    background-color: var(--color-dark);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    transition: right 0.4s ease;
+    z-index: 1000;
+}
+
+.navbar.active {
+    right: 0;
+}
+
+.navbar a {
+    color: var(--color-white);
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    transition: color 0.3s;
+}
+
+.navbar a:hover {
+    color: var(--color-primary);
+}
+
+/* ============================================
+   RESPONSIVE - Cacher burger sur desktop
+   ============================================ */
+@media (min-width: 768px) {
+    .burger-menu {
+        display: none;
+    }
+    
+    .navbar {
+        position: static;
+        flex-direction: row;
+        width: auto;
+        background: transparent;
+        right: 0;
+    }
+}
