@@ -3,14 +3,22 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="BookFinder - Explorez et découvrez des milliers de livres, des prochaines parutions aux dernières nouveautés.">
         <title>BookFinder - Accueil</title>
+
+        <!-- J'ajoute Bootstrap CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="css/style.css">
+        
+        <script defer src="js/burger-menu.js"></script>
     </head>
-
+    
     <body>
-        <header>
-
+        <header class="header">
             <div class="logo">
-                <img src="img/logo.png" alt="Une image qui représente un logo">
+                <a href="index.html">
+                    <img src="img/logo.png" alt="BookFinder - Retour à l'accueil">
+                </a>
             </div>
 
             <nav class="navbar" aria-label="Navigation principale">
@@ -18,61 +26,81 @@
                 <a href="catalog.html">Catalogue</a>
             </nav>
 
+            <button class="burger-menu" type="button" aria-label="Menu de navigation" aria-expanded="false">
+                <span class="burger-line"></span>
+                <span class="burger-line"></span>
+                <span class="burger-line"></span>
+            </button>
         </header>
 
         <main>
-            <section class="home-section">
-
-                <!-- Une bannière d'accueil et son titre-->
-                <div class="banner">
-                    <img src="img/banner.png" alt="Une image qui représente la bannière de la page d'accueil">
-                    <h1>Bienvenue dans l'explorateur de livres !</h1>
-                </div>
-
-
-                <!-- La structure général des éléménts à réutiliser-->
-               <div class="container">
-                    <div class="header-container">
-                        <h2>Les derniers livres ajoutés</h2>
-                        <a href="#">Voir tout les derniers livres</a>
-
-                        <nav class="hader-navbar">
-                            <a href="#">Filtre1</a>
-                            <a href="#">Filtre2</a>
-                            <a href="#">Filtre3</a>
-                        </nav>
-
-                        <a href="#">Tout voir</a>
-                    </div>
-
-
-                    <div class="container-content">
-
-                        <div class="left-arrow"></div>
-
-                        <div class="content">
-                            <!-- ici sera affiché les livres dynamiquement en JS -->
-                        </div>
-
-                        <div class="right-arrow"></div>
-
-                    </div>
-               </div>
-
-           
-                
-
-                
-
-
+            <!-- La bannière d'accueil -->
+            <section class="banner">
+                <h1>Bienvenue dans l'explorateur de livres !</h1>
             </section>
 
+            <!-- Les prochaines parutions -->
+            <section class="book-section upcoming-releases">
+                <header class="section-header">
+                    <h2>Prochaines parutions</h2>
+                    <div class="filters" role="group" aria-label="Filtrer par genre">
+                        <button type="button" class="filter-btn active">Tous</button>
+                        <button type="button" class="filter-btn">Fantasy</button>
+                        <button type="button" class="filter-btn">Science-fiction</button>
+                        <button type="button" class="filter-btn">Thriller</button>
+                    </div>
+                    <a href="catalog.html?filter=upcoming" class="view-all-link">
+                        Voir tout le planning →
+                    </a>
+                </header>
+
+                <div class="carousel">
+                    <button class="carousel-btn prev" type="button" aria-label="Livres précédents">
+                        ‹
+                    </button>
+                    <div class="carousel-content">
+                        <!-- Livres affichés dynamiquement en JS -->
+                    </div>
+                    <button class="carousel-btn next" type="button" aria-label="Livres suivants">
+                        ›
+                    </button>
+                </div>
+            </section>
+
+            <!-- Derniers livres ajoutés -->
+            <section class="book-section new-arrivals">
+                <header class="section-header">
+                    <h2>Derniers livres ajoutés</h2>
+                    <div class="filters" role="group" aria-label="Filtrer par genre">
+                        <button type="button" class="filter-btn active">Tous</button>
+                        <button type="button" class="filter-btn">Fantasy</button>
+                        <button type="button" class="filter-btn">Science-fiction</button>
+                        <button type="button" class="filter-btn">Thriller</button>
+                    </div>
+                    <a href="catalog.html?filter=new" class="view-all-link">
+                        Voir toutes les nouveautés →
+                    </a>
+                </header>
+
+                <div class="carousel">
+                    <button class="carousel-btn prev" type="button" aria-label="Livres précédents">
+                        <
+                    </button>
+
+                    <div class="carousel-content">
+                        <!-- Livres affichés dynamiquement en JS -->
+                    </div>
+
+                    <button class="carousel-btn next" type="button" aria-label="Livres suivants">
+                        >
+                    </button>
+                </div>
+            </section>
         </main>
 
-        <footer>
-            <p>&copy; 2026 - 2027 | BookFinder | Tout droits réservés.</p>
+        <footer class="footer">
+            <p>&copy; 2026 - 2027 | BookFinder | Tous droits réservés.</p>
             <p>Seifeddine Maachaoui</p>
         </footer>
-
     </body>
 </html>
