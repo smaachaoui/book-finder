@@ -1,16 +1,20 @@
+/**
+ * BookController
+ * 
+ * Je gère les interactions entre le Model et le View.
+ * J'utilise des fonctions de sécurité pour valider les entrées utilisateur.
+ * 
+ * @class BookController
+ */
+
+/* J'importe les modules nécessaires */
 import { BookModel } from '../models/BookModel.js';
 import { BookView } from '../views/BookView.js';
 import { WishlistModel } from '../models/WishlistModel.js';
 import { ModalView } from '../views/ModalView.js';
 import { debounce, showToast, getUrlParams, updateUrlParam } from '../utils/helpers.js';
+import { sanitizeSearchInput, validateBookId, validateYear } from '../utils/security.js';
 
-/**
- * BookController
- * 
- * Gère les interactions entre le Model et le View.
- * 
- * @class BookController
- */
 export class BookController {
 
     /**
@@ -47,6 +51,7 @@ export class BookController {
 
     /**
      * Je vérifie les paramètres URL au chargement.
+     * Je valide les paramètres pour la sécurité.
      * 
      * @returns {void}
      */
@@ -54,15 +59,21 @@ export class BookController {
         const params = getUrlParams();
         const query = params.get('q');
 
+        /* Je valide le paramètre de recherche */
         if (query) {
-            const searchInput = document.querySelector('#search');
+            const sanitizedQuery = sanitizeSearchInput(query);
 
-            if (searchInput) {
-                searchInput.value = query;
+            /* Je vérifie que la requête est valide après nettoyage */
+            if (sanitizedQuery) {
+                const searchInput = document.querySelector('#search');
+
+                if (searchInput) {
+                    searchInput.value = sanitizedQuery;
+                }
+
+                this.currentQuery = sanitizedQuery;
+                this.loadBooks(sanitizedQuery);
             }
-
-            this.currentQuery = query;
-            this.loadBooks(query);
         }
     }
 
@@ -74,10 +85,12 @@ export class BookController {
     bindSearchForm() {
         const form = document.querySelector('.search-form');
 
+        /* Je vérifie que le formulaire existe */
         if (!form) {
             return;
         }
 
+        /* J'ajoute l'écouteur d'événement */
         form.addEventListener('submit', (event) => this.handleSearch(event));
     }
 
@@ -89,19 +102,25 @@ export class BookController {
     bindRealTimeSearch() {
         const searchInput = document.querySelector('#search');
 
+        /* Je vérifie que le champ de recherche existe */
         if (!searchInput) {
             return;
         }
 
+        /* Je crée une fonction debounce pour limiter les appels */
         const debouncedSearch = debounce((query) => {
-            if (query.length >= 3) {
-                this.currentQuery = query;
+            /* Je valide et nettoie la requête */
+            const sanitizedQuery = sanitizeSearchInput(query);
+
+            if (sanitizedQuery.length >= 3) {
+                this.currentQuery = sanitizedQuery;
                 this.currentPage = 1;
-                updateUrlParam('q', query);
-                this.loadBooks(query);
+                updateUrlParam('q', sanitizedQuery);
+                this.loadBooks(sanitizedQuery);
             }
         }, 500);
 
+        /* J'écoute les saisies dans le champ de recherche */
         searchInput.addEventListener('input', (event) => {
             const query = event.target.value.trim();
             debouncedSearch(query);
@@ -116,12 +135,15 @@ export class BookController {
     bindFilters() {
         const filterContainer = document.querySelector('.filters-sidebar');
 
+        /* Je vérifie que le conteneur de filtres existe */
         if (!filterContainer) {
             return;
         }
 
+        /* J'écoute les changements de filtres */
         filterContainer.addEventListener('change', () => this.handleFilter());
 
+        /* Je lie le bouton de réinitialisation */
         const resetButton = filterContainer.querySelector('.reset-filters-btn');
 
         if (resetButton) {
@@ -130,29 +152,41 @@ export class BookController {
     }
 
     /**
-     * Je lie les actions sur les livres (délégation d'événements).
+     * Je lie les actions sur les livres via délégation d'événements.
      * 
      * @returns {void}
      */
     bindBookActions() {
         const container = this.view.container;
 
+        /* Je vérifie que le conteneur existe */
         if (!container) {
             return;
         }
 
+        /* J'utilise la délégation d'événements pour les performances */
         container.addEventListener('click', (event) => {
             const detailsBtn = event.target.closest('.btn-details');
             const wishlistBtn = event.target.closest('.btn-wishlist');
 
+            /* Je gère le clic sur le bouton détails */
             if (detailsBtn) {
                 const workId = detailsBtn.dataset.workId;
-                this.handleBookClick(workId);
+                /* Je valide l'identifiant avant de l'utiliser */
+                const validWorkId = validateBookId(workId);
+                if (validWorkId) {
+                    this.handleBookClick(validWorkId);
+                }
             }
 
+            /* Je gère le clic sur le bouton wishlist */
             if (wishlistBtn) {
                 const workId = wishlistBtn.dataset.workId;
-                this.handleWishlistToggle(workId, wishlistBtn);
+                /* Je valide l'identifiant avant de l'utiliser */
+                const validWorkId = validateBookId(workId);
+                if (validWorkId) {
+                    this.handleWishlistToggle(validWorkId, wishlistBtn);
+                }
             }
         });
     }
@@ -166,10 +200,12 @@ export class BookController {
         const prevBtn = document.querySelector('.pagination-btn.prev');
         const nextBtn = document.querySelector('.pagination-btn.next');
 
+        /* Je lie le bouton précédent */
         if (prevBtn) {
             prevBtn.addEventListener('click', () => this.goToPage(this.currentPage - 1));
         }
 
+        /* Je lie le bouton suivant */
         if (nextBtn) {
             nextBtn.addEventListener('click', () => this.goToPage(this.currentPage + 1));
         }
@@ -183,10 +219,12 @@ export class BookController {
     bindModalActions() {
         const modal = document.querySelector('.modal-overlay');
 
+        /* Je vérifie que la modale existe */
         if (!modal) {
             return;
         }
 
+        /* J'écoute les clics dans la modale */
         modal.addEventListener('click', (event) => {
             const wishlistBtn = event.target.closest('.btn-wishlist');
 
@@ -199,25 +237,36 @@ export class BookController {
 
     /**
      * Je gère la soumission du formulaire de recherche.
+     * Je valide les entrées pour la sécurité.
      * 
      * @param {Event} event L'événement submit
      * @returns {Promise<void>}
      */
     async handleSearch(event) {
+        /* J'empêche la soumission par défaut */
         event.preventDefault();
 
         const input = event.target.querySelector('input[type="search"]');
         const query = input?.value.trim();
 
+        /* Je vérifie que la requête n'est pas vide */
         if (!query) {
             return;
         }
 
-        this.currentQuery = query;
-        this.currentPage = 1;
-        updateUrlParam('q', query);
+        /* Je valide et nettoie la requête */
+        const sanitizedQuery = sanitizeSearchInput(query);
 
-        await this.loadBooks(query);
+        if (!sanitizedQuery) {
+            showToast('Requête de recherche invalide', 'error');
+            return;
+        }
+
+        this.currentQuery = sanitizedQuery;
+        this.currentPage = 1;
+        updateUrlParam('q', sanitizedQuery);
+
+        await this.loadBooks(sanitizedQuery);
     }
 
     /**
@@ -228,6 +277,7 @@ export class BookController {
      * @returns {Promise<void>}
      */
     async loadBooks(query, page = 1) {
+        /* J'affiche le loader pendant le chargement */
         this.view.showLoading();
 
         try {
@@ -235,6 +285,7 @@ export class BookController {
 
             let books = results.books;
 
+            /* J'applique les filtres si nécessaire */
             if (Object.keys(this.currentFilters).length > 0) {
                 books = this.model.filterBooks(this.currentFilters);
             }
@@ -245,11 +296,13 @@ export class BookController {
                 inWishlist: this.wishlistModel.has(book.key)
             }));
 
+            /* J'affiche les résultats */
             this.view.renderBooks(books);
             this.view.updateResultsCount(results.total);
             this.updatePagination(results.total);
 
         } catch (error) {
+            console.error('Erreur lors de la recherche:', error);
             this.view.showError('Une erreur est survenue lors de la recherche.');
         }
     }
@@ -266,14 +319,17 @@ export class BookController {
         const prevBtn = document.querySelector('.pagination-btn.prev');
         const nextBtn = document.querySelector('.pagination-btn.next');
 
+        /* Je mets à jour le texte de pagination */
         if (paginationInfo) {
             paginationInfo.textContent = `Page ${this.currentPage} sur ${totalPages || 1}`;
         }
 
+        /* Je gère l'état du bouton précédent */
         if (prevBtn) {
             prevBtn.disabled = this.currentPage <= 1;
         }
 
+        /* Je gère l'état du bouton suivant */
         if (nextBtn) {
             nextBtn.disabled = this.currentPage >= totalPages;
         }
@@ -286,6 +342,7 @@ export class BookController {
      * @returns {void}
      */
     goToPage(page) {
+        /* Je valide le numéro de page */
         if (page < 1 || !this.currentQuery) {
             return;
         }
@@ -302,7 +359,7 @@ export class BookController {
     }
 
     /**
-     * Je gère l'application des filtres.
+     * Je gère l'application des filtres avec validation.
      * 
      * @returns {void}
      */
@@ -318,34 +375,44 @@ export class BookController {
             inWishlist: this.wishlistModel.has(book.key)
         }));
 
+        /* J'affiche les livres filtrés */
         this.view.renderBooks(filteredBooks);
         this.view.updateResultsCount(filteredBooks.length);
     }
 
     /**
-     * Je récupère les valeurs des filtres depuis le formulaire.
+     * Je récupère et valide les valeurs des filtres depuis le formulaire.
      * 
-     * @returns {Object} Les filtres sélectionnés
+     * @returns {Object} Les filtres sélectionnés et validés
      */
     getFiltersFromForm() {
         const filters = {};
 
+        /* Je récupère le filtre de langue */
         const languageChecked = document.querySelectorAll('input[name="language"]:checked');
 
         if (languageChecked.length > 0) {
             filters.language = languageChecked[0].value;
         }
 
+        /* Je récupère et valide l'année de début */
         const yearFrom = document.querySelector('input[name="yearFrom"]');
 
         if (yearFrom?.value) {
-            filters.yearFrom = parseInt(yearFrom.value);
+            const validYear = validateYear(yearFrom.value, 1000, new Date().getFullYear());
+            if (validYear) {
+                filters.yearFrom = validYear;
+            }
         }
 
+        /* Je récupère et valide l'année de fin */
         const yearTo = document.querySelector('input[name="yearTo"]');
 
         if (yearTo?.value) {
-            filters.yearTo = parseInt(yearTo.value);
+            const validYear = validateYear(yearTo.value, 1000, new Date().getFullYear());
+            if (validYear) {
+                filters.yearTo = validYear;
+            }
         }
 
         return filters;
@@ -359,6 +426,7 @@ export class BookController {
     resetFilters() {
         const filterContainer = document.querySelector('.filters-sidebar');
 
+        /* Je réinitialise tous les champs de filtre */
         if (filterContainer) {
             const inputs = filterContainer.querySelectorAll('input');
 
@@ -373,6 +441,7 @@ export class BookController {
 
         this.currentFilters = {};
 
+        /* Je réaffiche tous les livres */
         let books = this.model.books.map(book => ({
             ...book,
             inWishlist: this.wishlistModel.has(book.key)
@@ -385,14 +454,16 @@ export class BookController {
     /**
      * Je gère le clic sur un livre pour afficher les détails.
      * 
-     * @param {string} workId L'identifiant du livre
+     * @param {string} workId L'identifiant du livre validé
      * @returns {Promise<void>}
      */
     async handleBookClick(workId) {
+        /* Je vérifie que l'identifiant est valide */
         if (!workId) {
             return;
         }
 
+        /* J'affiche le loader */
         this.modalView.showLoading();
 
         try {
@@ -408,6 +479,7 @@ export class BookController {
             const details = await this.model.getBookDetails(workId);
             const inWishlist = this.wishlistModel.has(book.key);
 
+            /* J'affiche les détails dans la modale */
             this.modalView.showBookDetails(book, details, inWishlist);
 
         } catch (error) {
@@ -419,11 +491,12 @@ export class BookController {
     /**
      * Je gère le toggle wishlist depuis la liste des livres.
      * 
-     * @param {string} workId L'identifiant du livre
+     * @param {string} workId L'identifiant du livre validé
      * @param {HTMLElement} button Le bouton cliqué
      * @returns {void}
      */
     handleWishlistToggle(workId, button) {
+        /* Je vérifie que l'identifiant est valide */
         if (!workId) {
             return;
         }
@@ -434,9 +507,10 @@ export class BookController {
             return;
         }
 
+        /* Je toggle le livre dans la wishlist */
         const result = this.wishlistModel.toggle(book);
 
-        /* Je mets à jour le bouton */
+        /* Je mets à jour le bouton selon le résultat */
         if (result.inWishlist) {
             button.classList.add('in-wishlist');
             button.textContent = 'Dans la wishlist ♥';
@@ -455,6 +529,7 @@ export class BookController {
      * @returns {void}
      */
     handleModalWishlist(workKey) {
+        /* Je vérifie que la clé est valide */
         if (!workKey) {
             return;
         }
@@ -465,6 +540,7 @@ export class BookController {
             return;
         }
 
+        /* Je toggle le livre dans la wishlist */
         const result = this.wishlistModel.toggle(book);
 
         /* Je mets à jour le bouton dans la modale */
@@ -484,6 +560,7 @@ export class BookController {
             }
         }
 
+        /* J'affiche une notification */
         if (result.inWishlist) {
             showToast('Livre ajouté à la wishlist', 'success');
         } else {
