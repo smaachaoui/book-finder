@@ -1488,13 +1488,14 @@ main {
 .wishlist-card-cover {
     width: 100%;
     height: 200px;
+    padding: 1rem;
     overflow: hidden;
 }
 
 .wishlist-card-cover img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
 }
 
 .wishlist-card-info {
@@ -1615,7 +1616,9 @@ main {
     }
 
     .wishlist-card {
-        flex-direction: row;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
     }
 
     .wishlist-card-cover {
