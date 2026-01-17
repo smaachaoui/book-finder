@@ -41,18 +41,18 @@
                 <h1>Bienvenue dans l'explorateur de livres !</h1>
             </section>
 
-            <!-- Les prochaines parutions -->
-            <section class="book-section upcoming-releases">
+            <!-- Les sorties récentes -->
+            <section class="book-section recent-releases">
                 <header class="section-header">
-                    <h2>Prochaines parutions</h2>
-                    <div class="filters" role="group" aria-label="Filtrer par genre">
-                        <button type="button" class="filter-btn active">Tous</button>
-                        <button type="button" class="filter-btn">Fantasy</button>
-                        <button type="button" class="filter-btn">Science-fiction</button>
-                        <button type="button" class="filter-btn">Thriller</button>
+                    <h2>Sorties récentes</h2>
+                    <div class="filters" role="group" aria-label="Filtrer par période">
+                        <button type="button" class="filter-btn active" data-period="2024">2024</button>
+                        <button type="button" class="filter-btn" data-period="2023">2023</button>
+                        <button type="button" class="filter-btn" data-period="2022">2022</button>
+                        <button type="button" class="filter-btn" data-period="classics">Classiques</button>
                     </div>
-                    <a href="catalog.html?filter=upcoming" class="view-all-link">
-                        Voir tout le planning →
+                    <a href="catalog.html?q=fiction" class="view-all-link">
+                        Voir tout →
                     </a>
                 </header>
 
@@ -61,7 +61,7 @@
                         ‹
                     </button>
                     <div class="carousel-content">
-                        <!-- Les livres seront affichés ici dynamiquement en JS -->
+                        <!-- Livres affichés dynamiquement en JS -->
                     </div>
                     <button class="carousel-btn next" type="button" aria-label="Livres suivants">
                         ›
@@ -69,32 +69,33 @@
                 </div>
             </section>
 
-            <!-- Derniers livres ajoutés -->
-            <section class="book-section new-arrivals">
+            <!-- Livres populaires par genre -->
+            <section class="book-section popular-books">
                 <header class="section-header">
-                    <h2>Derniers livres ajoutés</h2>
+                    <h2>Populaires par genre</h2>
                     <div class="filters" role="group" aria-label="Filtrer par genre">
-                        <button type="button" class="filter-btn active">Tous</button>
-                        <button type="button" class="filter-btn">Fantasy</button>
-                        <button type="button" class="filter-btn">Science-fiction</button>
-                        <button type="button" class="filter-btn">Thriller</button>
+                        <button type="button" class="filter-btn active" data-genre="fiction">Fiction</button>
+                        <button type="button" class="filter-btn" data-genre="fantasy">Fantasy</button>
+                        <button type="button" class="filter-btn" data-genre="science_fiction">Science-fiction</button>
+                        <button type="button" class="filter-btn" data-genre="thriller">Thriller</button>
+                        <button type="button" class="filter-btn" data-genre="romance">Romance</button>
                     </div>
-                    <a href="catalog.html?filter=new" class="view-all-link">
-                        Voir toutes les nouveautés →
+                    <a href="catalog.html" class="view-all-link">
+                        Voir le catalogue →
                     </a>
                 </header>
 
                 <div class="carousel">
                     <button class="carousel-btn prev" type="button" aria-label="Livres précédents">
-                        <
+                        ‹
                     </button>
 
                     <div class="carousel-content">
-                        <!-- Les livres seront affichés ici dynamiquement en JS -->
+                        <!-- Livres affichés dynamiquement en JS -->
                     </div>
 
                     <button class="carousel-btn next" type="button" aria-label="Livres suivants">
-                        >
+                        ›
                     </button>
                 </div>
             </section>
