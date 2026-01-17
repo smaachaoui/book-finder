@@ -73,20 +73,20 @@ class App {
      * @returns {void}
      */
     async initCarousels() {
-        /* Carrousel des prochaines parutions (livres récents) */
-        const upcomingCarousel = document.querySelector('.upcoming-releases .carousel-content');
+        /* Carrousel des sorties récentes (par année) */
+        const recentCarousel = document.querySelector('.recent-releases .carousel-content');
 
-        if (upcomingCarousel) {
-            await this.loadCarouselBooks(upcomingCarousel, 'new releases 2024', 10);
-            this.bindCarouselButtons('.upcoming-releases');
+        if (recentCarousel) {
+            await this.loadCarouselBooks(recentCarousel, 'subject:fiction first_publish_year:2024', 10);
+            this.bindCarouselButtons('.recent-releases');
         }
 
-        /* Carrousel des nouveautés */
-        const newArrivalsCarousel = document.querySelector('.new-arrivals .carousel-content');
+        /* Carrousel des livres populaires (par genre) */
+        const popularCarousel = document.querySelector('.popular-books .carousel-content');
 
-        if (newArrivalsCarousel) {
-            await this.loadCarouselBooks(newArrivalsCarousel, 'bestseller fiction', 10);
-            this.bindCarouselButtons('.new-arrivals');
+        if (popularCarousel) {
+            await this.loadCarouselBooks(popularCarousel, 'subject:fiction', 10);
+            this.bindCarouselButtons('.popular-books');
         }
 
         /* Binding des filtres de la homepage */
@@ -109,14 +109,21 @@ class App {
                 </div>
             `;
 
-            const results = await this.bookModel.searchBooks(query, 1, limit);
+            /* Je demande plus de résultats pour filtrer ensuite */
+            const results = await this.bookModel.searchBooks(query, 1, limit * 3);
 
-            if (results.books.length === 0) {
+            /* Je filtre pour garder uniquement les livres avec couverture */
+            const booksWithCovers = results.books.filter(book => book.cover_i);
+
+            /* Je limite au nombre demandé */
+            const books = booksWithCovers.slice(0, limit);
+
+            if (books.length === 0) {
                 container.innerHTML = '<p class="carousel-empty">Aucun livre trouvé</p>';
                 return;
             }
 
-            const html = results.books.map(book => this.renderCarouselCard(book)).join('');
+            const html = books.map(book => this.renderCarouselCard(book)).join('');
             container.innerHTML = html;
 
         } catch (error) {
@@ -202,24 +209,61 @@ class App {
      * @returns {void}
      */
     bindHomeFilters() {
-        const filterButtons = document.querySelectorAll('.book-section .filter-btn');
+        /* Filtres de la section "Sorties récentes" (par période) */
+        const recentSection = document.querySelector('.recent-releases');
 
-        filterButtons.forEach(btn => {
-            btn.addEventListener('click', (event) => {
-                const section = event.target.closest('.book-section');
-                const buttons = section.querySelectorAll('.filter-btn');
+        if (recentSection) {
+            const filterButtons = recentSection.querySelectorAll('.filter-btn');
+            const carousel = recentSection.querySelector('.carousel-content');
 
-                /* Je retire la classe active de tous les boutons */
-                buttons.forEach(b => b.classList.remove('active'));
+            filterButtons.forEach(btn => {
+                btn.addEventListener('click', async (event) => {
+                    /* Je retire la classe active de tous les boutons */
+                    filterButtons.forEach(b => b.classList.remove('active'));
+                    event.target.classList.add('active');
 
-                /* J'ajoute la classe active au bouton cliqué */
-                event.target.classList.add('active');
+                    /* Je récupère la période sélectionnée */
+                    const period = event.target.dataset.period;
+                    let query;
 
-                /* TODO: Filtrer les livres selon le genre sélectionné */
-                const genre = event.target.textContent.trim().toLowerCase();
-                console.log('Filtre sélectionné:', genre);
+                    if (period === 'classics') {
+                        query = 'subject:classic_literature';
+                    } else {
+                        query = `subject:fiction first_publish_year:${period}`;
+                    }
+
+                    /* Je recharge le carrousel */
+                    if (carousel) {
+                        await this.loadCarouselBooks(carousel, query, 10);
+                    }
+                });
             });
-        });
+        }
+
+        /* Filtres de la section "Populaires par genre" */
+        const popularSection = document.querySelector('.popular-books');
+
+        if (popularSection) {
+            const filterButtons = popularSection.querySelectorAll('.filter-btn');
+            const carousel = popularSection.querySelector('.carousel-content');
+
+            filterButtons.forEach(btn => {
+                btn.addEventListener('click', async (event) => {
+                    /* Je retire la classe active de tous les boutons */
+                    filterButtons.forEach(b => b.classList.remove('active'));
+                    event.target.classList.add('active');
+
+                    /* Je récupère le genre sélectionné */
+                    const genre = event.target.dataset.genre;
+                    const query = `subject:${genre}`;
+
+                    /* Je recharge le carrousel */
+                    if (carousel) {
+                        await this.loadCarouselBooks(carousel, query, 10);
+                    }
+                });
+            });
+        }
     }
 
     /**
