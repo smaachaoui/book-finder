@@ -1,31 +1,47 @@
 <!DOCTYPE html>
 <html lang="fr">
     <head>
+        <!-- Je définis l'encodage des caractères en UTF8 -->
         <meta charset="UTF-8">
+
+        <!-- Je configure le viewport pour le responsive design -->
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <!-- J'ajoute une description pour le référencement SEO -->
         <meta name="description" content="BookFinder - Explorez et découvrez des milliers de livres, des prochaines parutions aux dernières nouveautés.">
+
+        <!-- Je définis le titre de la page -->
         <title>BookFinder - Accueil</title>
 
+        <!-- J'importe la feuille de style principale -->
         <link rel="stylesheet" href="css/style.css">
         
+        <!-- Je charge le script du menu burger -->
         <script src="js/menu-burger.js"></script>
+
+        <!-- Je charge le script principal de l'application en mode module -->
         <script type="module" src="js/app.js"></script>
     </head>
     
     <body>
+        <!-- Je crée l'entête du site avec le logo et la navigation -->
         <header class="header">
+
+            <!-- Je place le logo avec un lien vers l'accueil -->
             <div class="logo">
                 <a href="index.html">
                     <img src="img/logo.png" width="50" height="50" alt="BookFinder - Retour à l'accueil">
                 </a>
             </div>
 
+            <!-- Je crée la navigation principale du site -->
             <nav class="navbar" aria-label="Navigation principale">
                 <a href="index.html">Accueil</a>
                 <a href="catalog.html">Catalogue</a>
                 <a href="wishlist.html">Ma Wishlist</a>
             </nav>
 
+            <!-- Je crée le bouton du menu burger pour le mobile -->
             <button class="burger-menu" type="button" aria-label="Menu de navigation" aria-expanded="false">
                 <span class="burger-line"></span>
                 <span class="burger-line"></span>
@@ -33,44 +49,60 @@
             </button>
         </header>
 
+        <!-- Je crée le contenu principal de la page -->
         <main>
-            <!-- La bannière d'accueil -->
+
+            <!-- Je crée la bannière d'accueil avec le titre principal -->
             <section class="banner">
                 <h1>Bienvenue dans l'explorateur de livres !</h1>
             </section>
 
-            <!-- Les sorties récentes -->
+            <!-- Je crée la section des sorties récentes avec carrousel -->
             <section class="book-section recent-releases">
+
+                <!-- J'ajoute l'entête de section avec les filtres par période -->
                 <header class="section-header">
                     <h2>Sorties récentes</h2>
+
+                    <!-- Je crée les boutons de filtre par année -->
                     <div class="filters" role="group" aria-label="Filtrer par période">
                         <button type="button" class="filter-btn active" data-period="2024">2024</button>
                         <button type="button" class="filter-btn" data-period="2023">2023</button>
                         <button type="button" class="filter-btn" data-period="2022">2022</button>
                         <button type="button" class="filter-btn" data-period="classics">Classiques</button>
                     </div>
+
+                    <!-- J'ajoute un lien vers le catalogue complet -->
                     <a href="catalog.html?q=fiction" class="view-all-link">
                         Voir tout →
                     </a>
                 </header>
 
+                <!-- Je crée le carrousel avec boutons de navigation -->
                 <div class="carousel">
                     <button class="carousel-btn prev" type="button" aria-label="Livres précédents">
                         ‹
                     </button>
+
+                    <!-- Je crée le conteneur où les livres seront affichés dynamiquement -->
                     <div class="carousel-content">
-                        <!-- Livres affichés dynamiquement en JS -->
+                        <!-- J'affiche les livres dynamiquement via JavaScript -->
                     </div>
+
                     <button class="carousel-btn next" type="button" aria-label="Livres suivants">
                         ›
                     </button>
                 </div>
             </section>
 
-            <!-- Livres populaires par genre -->
+            <!-- Je crée la section des livres populaires par genre -->
             <section class="book-section popular-books">
+
+                <!-- J'ajoute l'entête de section avec les filtres par genre -->
                 <header class="section-header">
                     <h2>Populaires par genre</h2>
+
+                    <!-- Je crée les boutons de filtre par genre littéraire -->
                     <div class="filters" role="group" aria-label="Filtrer par genre">
                         <button type="button" class="filter-btn active" data-genre="fiction">Fiction</button>
                         <button type="button" class="filter-btn" data-genre="fantasy">Fantasy</button>
@@ -78,18 +110,22 @@
                         <button type="button" class="filter-btn" data-genre="thriller">Thriller</button>
                         <button type="button" class="filter-btn" data-genre="romance">Romance</button>
                     </div>
+
+                    <!-- J'ajoute un lien vers le catalogue complet -->
                     <a href="catalog.html" class="view-all-link">
                         Voir le catalogue →
                     </a>
                 </header>
 
+                <!-- Je crée le carrousel avec boutons de navigation -->
                 <div class="carousel">
                     <button class="carousel-btn prev" type="button" aria-label="Livres précédents">
                         ‹
                     </button>
 
+                    <!-- Je crée le conteneur où les livres seront affichés dynamiquement -->
                     <div class="carousel-content">
-                        <!-- Livres affichés dynamiquement en JS -->
+                        <!-- J'affiche les livres dynamiquement via JavaScript -->
                     </div>
 
                     <button class="carousel-btn next" type="button" aria-label="Livres suivants">
@@ -99,6 +135,7 @@
             </section>
         </main>
 
+        <!-- Je crée le pied de page avec les informations légales -->
         <footer class="footer">
             <p>&copy; 2026 - 2027 | BookFinder | Tous droits réservés.</p>
             <p>Seifeddine Maachaoui</p>

@@ -1,29 +1,47 @@
 <!DOCTYPE html>
 <html lang="fr">
     <head>
+        <!-- Je définis l'encodage des caractères en UTF8 -->
         <meta charset="UTF-8">
+
+        <!-- Je configure le viewport pour le responsive design -->
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <!-- J'ajoute une description pour le référencement SEO -->
         <meta name="description" content="BookFinder - Explorez et découvrez des milliers de livres, des prochaines parutions aux dernières nouveautés.">
+
+        <!-- Je définis le titre de la page -->
         <title>BookFinder - Catalogue</title>
 
+        <!-- J'importe la feuille de style principale -->
         <link rel="stylesheet" href="css/style.css">
         
+        <!-- Je charge le script du menu burger en différé -->
         <script defer src="js/menu-burger.js"></script>
+
+        <!-- Je charge le script principal de l'application en mode module -->
         <script type="module" src="js/app.js"></script>
-        
     </head>
+
     <body>
+        <!-- Je crée l'entête du site avec le logo et la navigation -->
         <header class="header">
+
+            <!-- Je place le logo avec un lien vers l'accueil -->
             <div class="logo">
                 <a href="index.html">
                     <img src="img/logo.png" width="100" height="80" alt="Logo du site web">
                 </a>
             </div>
+
+            <!-- Je crée la navigation principale du site -->
             <nav class="navbar" aria-label="Navigation principale">
                 <a href="index.html">Accueil</a>
                 <a href="catalog.html">Catalogue</a>
                 <a href="wishlist.html">Ma Wishlist</a>
             </nav>
+
+            <!-- Je crée le bouton du menu burger pour le mobile -->
             <button class="burger-menu" type="button" aria-label="Menu de navigation" aria-expanded="false">
                 <span class="burger-line"></span>
                 <span class="burger-line"></span>
@@ -31,12 +49,20 @@
             </button>
         </header>
 
+        <!-- Je crée le contenu principal de la page -->
         <main>
-            <!-- Section de recherche -->
+
+            <!-- Je crée la section de recherche avec le formulaire -->
             <section class="search-section">
                 <h1>Vous cherchez un livre ?</h1>
+
+                <!-- Je crée le formulaire de recherche -->
                 <form class="search-form" action="catalog.html" method="get" role="search">
+
+                    <!-- J'ajoute un label masqué pour l'accessibilité -->
                     <label for="search" class="visually-hidden">Rechercher un livre</label>
+
+                    <!-- Je crée le champ de recherche -->
                     <input 
                         type="search" 
                         id="search" 
@@ -44,21 +70,23 @@
                         placeholder="Titre, auteur, ISBN..."
                         autocomplete="off"
                     >
+
+                    <!-- J'ajoute le bouton de soumission -->
                     <button type="submit" aria-label="Lancer la recherche">
                         Rechercher
                     </button>
                 </form>
             </section>
 
-            <!-- Section des résultats -->
+            <!-- Je crée la section des résultats de recherche -->
             <section class="results-section">
                 <div class="results-container">
                     
-                    <!-- Sidebar avec filtres -->
+                    <!-- Je crée la barre latérale avec les filtres -->
                     <aside class="filters-sidebar">
                         <h2>Filtres</h2>
 
-                        <!-- Filtre par langue -->
+                        <!-- Je crée le groupe de filtres par langue -->
                         <fieldset class="filter-group">
                             <legend>Langue</legend>
                             <label>
@@ -83,7 +111,7 @@
                             </label>
                         </fieldset>
 
-                        <!-- Filtre par année -->
+                        <!-- Je crée le groupe de filtres par année de publication -->
                         <fieldset class="filter-group">
                             <legend>Année de publication</legend>
                             <div class="year-inputs">
@@ -98,7 +126,7 @@
                             </div>
                         </fieldset>
 
-                        <!-- Périodes prédéfinies -->
+                        <!-- Je crée le groupe de filtres par périodes prédéfinies -->
                         <fieldset class="filter-group">
                             <legend>Périodes</legend>
                             <label>
@@ -119,17 +147,22 @@
                             </label>
                         </fieldset>
 
+                        <!-- J'ajoute le bouton de réinitialisation des filtres -->
                         <button type="button" class="reset-filters-btn">
                             Réinitialiser les filtres
                         </button>
                     </aside>
 
-                    <!-- Contenu principal : liste des livres -->
+                    <!-- Je crée le contenu principal avec la liste des livres -->
                     <div class="results-content">
+
+                        <!-- J'ajoute l'entête des résultats avec le compteur et le tri -->
                         <header class="results-header">
                             <p class="results-count">
                                 <strong>124</strong> livres trouvés
                             </p>
+
+                            <!-- Je crée le sélecteur de tri -->
                             <div class="sort-options">
                                 <label for="sort">Trier par :</label>
                                 <select id="sort" name="sort">
@@ -143,12 +176,12 @@
                             </div>
                         </header>
 
-                        <!-- Grille des livres -->
+                        <!-- Je crée la grille où les livres seront affichés -->
                         <div class="books-grid">
-                            <!-- Les livres seront affichés dynamiquement en JS ici-->
+                            <!-- J'affiche les livres dynamiquement via JavaScript -->
                         </div>
 
-                        <!-- Pagination -->
+                        <!-- Je crée la navigation de pagination -->
                         <nav class="pagination" aria-label="Pagination des résultats">
                             <button type="button" class="pagination-btn prev" disabled aria-label="Page précédente">
                                 ‹ Précédent
@@ -164,6 +197,7 @@
             </section>
         </main>
 
+        <!-- Je crée le pied de page avec les informations légales -->
         <footer class="footer">
             <p>&copy; 2026 - 2027 | BookFinder | Tous droits réservés.</p>
             <p>Seifeddine Maachaoui</p>
