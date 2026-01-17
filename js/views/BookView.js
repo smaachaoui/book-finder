@@ -1,10 +1,15 @@
 /**
  * BookView
  * 
- * Gère l'affichage des livres dans le DOM.
+ * Je gère l'affichage des livres dans le DOM.
+ * J'utilise des fonctions de sécurité pour prévenir les attaques XSS.
  * 
  * @class BookView
  */
+
+/* J'importe les fonctions de sécurité pour échapper le contenu */
+import { escapeHtml, sanitizeUrl } from '../utils/security.js';
+
 export class BookView {
 
     /**
@@ -19,55 +24,68 @@ export class BookView {
     }
 
     /**
-     * J'affiche une liste de livres.
+     * J'affiche une liste de livres de manière sécurisée.
      * 
      * @param {Array} books La liste des livres à afficher
      * @returns {void}
      */
     renderBooks(books) {
+        /* Je vérifie que le conteneur existe */
         if (!this.container) {
             console.error('BookView: Conteneur non trouvé');
             return;
         }
 
+        /* J'affiche un message si aucun livre n'est trouvé */
         if (books.length === 0) {
             this.showEmpty();
             return;
         }
 
+        /* Je génère le HTML de manière sécurisée */
         const html = books.map(book => this.renderBookCard(book)).join('');
         this.container.innerHTML = html;
     }
 
     /**
-     * Je crée le HTML d'une carte de livre.
+     * Je crée le HTML d'une carte de livre avec échappement XSS.
+     * J'échappe toutes les données provenant de l'API pour la sécurité.
      * 
      * @param {Object} book Les données du livre
-     * @returns {string} Le HTML de la carte
+     * @returns {string} Le HTML de la carte sécurisé
      */
     renderBookCard(book) {
+        /* Je construis l'URL de la couverture de manière sécurisée */
         const coverUrl = book.cover_i
-            ? `https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`
+            ? sanitizeUrl(`https://covers.openlibrary.org/b/id/${escapeHtml(book.cover_i)}-M.jpg`)
             : this.defaultCover;
 
+        /* J'échappe le titre pour prévenir les XSS */
+        const safeTitle = escapeHtml(book.title || 'Titre inconnu');
+
+        /* J'échappe les noms des auteurs */
         const authors = book.author_name
-            ? book.author_name.join(', ')
+            ? escapeHtml(book.author_name.join(', '))
             : 'Auteur inconnu';
 
-        const year = book.first_publish_year || 'Date inconnue';
+        /* J'échappe l'année de publication */
+        const year = escapeHtml(book.first_publish_year || 'Date inconnue');
 
-        const workId = book.key ? book.key.replace('/works/', '') : '';
+        /* Je valide et échappe l'identifiant du livre */
+        const workId = book.key ? escapeHtml(book.key.replace('/works/', '')) : '';
 
+        /* Je détermine l'état du bouton wishlist */
         const wishlistClass = book.inWishlist ? 'btn-wishlist in-wishlist' : 'btn-wishlist';
         const wishlistText = book.inWishlist ? 'Dans la wishlist ♥' : 'Ajouter à la wishlist';
 
+        /* Je retourne le HTML avec toutes les données échappées */
         return `
             <article class="book-card" data-work-id="${workId}">
                 <div class="book-cover">
-                    <img src="${coverUrl}" alt="Couverture de ${book.title}" loading="lazy">
+                    <img src="${coverUrl}" alt="Couverture de ${safeTitle}" loading="lazy">
                 </div>
                 <div class="book-info">
-                    <h3 class="book-title">${book.title}</h3>
+                    <h3 class="book-title">${safeTitle}</h3>
                     <p class="book-author">${authors}</p>
                     <p class="book-year">${year}</p>
                 </div>
@@ -89,10 +107,12 @@ export class BookView {
      * @returns {void}
      */
     showLoading() {
+        /* Je vérifie que le conteneur existe */
         if (!this.container) {
             return;
         }
 
+        /* J'affiche le spinner de chargement */
         this.container.innerHTML = `
             <div class="loading">
                 <div class="spinner"></div>
@@ -115,19 +135,25 @@ export class BookView {
     }
 
     /**
-     * J'affiche un message d'erreur.
+     * J'affiche un message d'erreur sécurisé.
+     * J'échappe le message pour prévenir les XSS.
      * 
      * @param {string} message Le message d'erreur à afficher
      * @returns {void}
      */
     showError(message) {
+        /* Je vérifie que le conteneur existe */
         if (!this.container) {
             return;
         }
 
+        /* J'échappe le message d'erreur */
+        const safeMessage = escapeHtml(message);
+
+        /* J'affiche le message d'erreur */
         this.container.innerHTML = `
             <div class="error-message">
-                <p>${message}</p>
+                <p>${safeMessage}</p>
                 <button type="button" class="btn-retry">Réessayer</button>
             </div>
         `;
@@ -139,10 +165,12 @@ export class BookView {
      * @returns {void}
      */
     showEmpty() {
+        /* Je vérifie que le conteneur existe */
         if (!this.container) {
             return;
         }
 
+        /* J'affiche le message de résultat vide */
         this.container.innerHTML = `
             <div class="empty-message">
                 <p>Aucun livre trouvé.</p>
@@ -152,7 +180,7 @@ export class BookView {
     }
 
     /**
-     * Je mets à jour le compteur de résultats.
+     * Je mets à jour le compteur de résultats de manière sécurisée.
      * 
      * @param {number} count Le nombre de résultats
      * @param {string} selector Le sélecteur de l'élément compteur
@@ -162,7 +190,9 @@ export class BookView {
         const element = document.querySelector(selector);
 
         if (element) {
-            element.innerHTML = `<strong>${count}</strong> livre(s) trouvé(s)`;
+            /* Je m'assure que count est un nombre valide */
+            const safeCount = parseInt(count, 10) || 0;
+            element.innerHTML = `<strong>${safeCount}</strong> livre(s) trouvé(s)`;
         }
     }
 

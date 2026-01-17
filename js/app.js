@@ -1,14 +1,18 @@
-import { BookController } from './controllers/BookController.js';
-import { BookModel } from './models/BookModel.js';
-
 /**
  * App
  * 
- * Point d'entrée de l'application BookFinder.
+ * Je suis le point d'entrée de l'application BookFinder.
  * J'initialise les controllers selon la page courante.
+ * J'utilise des fonctions de sécurité pour protéger l'application.
  * 
  * @class App
  */
+
+/* J'importe les modules nécessaires */
+import { BookController } from './controllers/BookController.js';
+import { BookModel } from './models/BookModel.js';
+import { escapeHtml, sanitizeUrl } from './utils/security.js';
+
 class App {
 
     /**
@@ -22,13 +26,14 @@ class App {
     }
 
     /**
-     * J'initialise l'application.
+     * J'initialise l'application selon la page courante.
      * 
      * @returns {void}
      */
     init() {
         const page = this.getCurrentPage();
 
+        /* Je détermine quelle page initialiser */
         switch (page) {
             case 'index':
                 this.initHomePage();
@@ -42,7 +47,7 @@ class App {
     }
 
     /**
-     * Je détecte la page courante.
+     * Je détecte la page courante à partir de l'URL.
      * 
      * @returns {string} Le nom de la page
      */
@@ -57,23 +62,22 @@ class App {
     }
 
     /**
-     * J'initialise la page d'accueil.
+     * J'initialise la page d'accueil avec les carrousels.
      * 
      * @returns {void}
      */
     initHomePage() {
         console.log('Initialisation page accueil');
-
         this.initCarousels();
     }
 
     /**
      * J'initialise les carrousels de la page d'accueil.
      * 
-     * @returns {void}
+     * @returns {Promise<void>}
      */
     async initCarousels() {
-        /* Carrousel des sorties récentes (par année) */
+        /* Je charge le carrousel des sorties récentes */
         const recentCarousel = document.querySelector('.recent-releases .carousel-content');
 
         if (recentCarousel) {
@@ -81,7 +85,7 @@ class App {
             this.bindCarouselButtons('.recent-releases');
         }
 
-        /* Carrousel des livres populaires (par genre) */
+        /* Je charge le carrousel des livres populaires */
         const popularCarousel = document.querySelector('.popular-books .carousel-content');
 
         if (popularCarousel) {
@@ -89,12 +93,13 @@ class App {
             this.bindCarouselButtons('.popular-books');
         }
 
-        /* Binding des filtres de la homepage */
+        /* Je lie les filtres de la homepage */
         this.bindHomeFilters();
     }
 
     /**
-     * Je charge les livres pour un carrousel.
+     * Je charge les livres pour un carrousel de manière sécurisée.
+     * J'échappe toutes les données pour prévenir les XSS.
      * 
      * @param {HTMLElement} container Le conteneur du carrousel
      * @param {string} query La requête de recherche
@@ -103,6 +108,7 @@ class App {
      */
     async loadCarouselBooks(container, query, limit = 10) {
         try {
+            /* J'affiche le loader pendant le chargement */
             container.innerHTML = `
                 <div class="carousel-loading">
                     <div class="spinner"></div>
@@ -118,11 +124,13 @@ class App {
             /* Je limite au nombre demandé */
             const books = booksWithCovers.slice(0, limit);
 
+            /* J'affiche un message si aucun livre n'est trouvé */
             if (books.length === 0) {
                 container.innerHTML = '<p class="carousel-empty">Aucun livre trouvé</p>';
                 return;
             }
 
+            /* Je génère le HTML de manière sécurisée */
             const html = books.map(book => this.renderCarouselCard(book)).join('');
             container.innerHTML = html;
 
@@ -133,32 +141,44 @@ class App {
     }
 
     /**
-     * Je crée le HTML d'une carte pour le carrousel.
+     * Je crée le HTML d'une carte pour le carrousel de manière sécurisée.
+     * J'échappe toutes les données provenant de l'API.
      * 
      * @param {Object} book Les données du livre
-     * @returns {string} Le HTML de la carte
+     * @returns {string} Le HTML de la carte sécurisé
      */
     renderCarouselCard(book) {
+        /* Je construis l'URL de la couverture de manière sécurisée */
         const coverUrl = book.cover_i
-            ? `https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`
+            ? sanitizeUrl(`https://covers.openlibrary.org/b/id/${escapeHtml(book.cover_i)}-M.jpg`)
             : 'https://via.placeholder.com/150x200?text=No+Cover';
 
+        /* J'échappe le titre pour prévenir les XSS */
+        const safeTitle = escapeHtml(book.title || 'Titre inconnu');
+
+        /* J'échappe les noms des auteurs */
         const authors = book.author_name
-            ? book.author_name.slice(0, 1).join(', ')
+            ? escapeHtml(book.author_name.slice(0, 1).join(', '))
             : 'Auteur inconnu';
 
-        const year = book.first_publish_year || '';
+        /* J'échappe l'année de publication */
+        const year = escapeHtml(book.first_publish_year || '');
 
-        const workId = book.key ? book.key.replace('/works/', '') : '';
+        /* Je valide l'identifiant du livre */
+        const workId = book.key ? escapeHtml(book.key.replace('/works/', '')) : '';
 
+        /* Je construis l'URL de la page catalogue de manière sécurisée */
+        const catalogUrl = `catalog.html?q=${encodeURIComponent(book.title)}`;
+
+        /* Je retourne le HTML avec toutes les données échappées */
         return `
             <article class="carousel-card">
-                <a href="catalog.html?q=${encodeURIComponent(book.title)}" class="carousel-card-link">
+                <a href="${catalogUrl}" class="carousel-card-link">
                     <div class="carousel-card-cover">
-                        <img src="${coverUrl}" alt="Couverture de ${book.title}" loading="lazy">
+                        <img src="${coverUrl}" alt="Couverture de ${safeTitle}" loading="lazy">
                     </div>
                     <div class="carousel-card-info">
-                        <h3 class="carousel-card-title">${book.title}</h3>
+                        <h3 class="carousel-card-title">${safeTitle}</h3>
                         <p class="carousel-card-author">${authors}</p>
                         ${year ? `<p class="carousel-card-year">${year}</p>` : ''}
                     </div>
@@ -176,6 +196,7 @@ class App {
     bindCarouselButtons(sectionSelector) {
         const section = document.querySelector(sectionSelector);
 
+        /* Je vérifie que la section existe */
         if (!section) {
             return;
         }
@@ -184,18 +205,22 @@ class App {
         const prevBtn = section.querySelector('.carousel-btn.prev');
         const nextBtn = section.querySelector('.carousel-btn.next');
 
+        /* Je vérifie que le carrousel existe */
         if (!carousel) {
             return;
         }
 
+        /* Je définis la quantité de scroll */
         const scrollAmount = 250;
 
+        /* Je lie le bouton précédent */
         if (prevBtn) {
             prevBtn.addEventListener('click', () => {
                 carousel.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
             });
         }
 
+        /* Je lie le bouton suivant */
         if (nextBtn) {
             nextBtn.addEventListener('click', () => {
                 carousel.scrollBy({ left: scrollAmount, behavior: 'smooth' });
@@ -209,7 +234,7 @@ class App {
      * @returns {void}
      */
     bindHomeFilters() {
-        /* Filtres de la section "Sorties récentes" (par période) */
+        /* Je lie les filtres de la section "Sorties récentes" */
         const recentSection = document.querySelector('.recent-releases');
 
         if (recentSection) {
@@ -226,10 +251,11 @@ class App {
                     const period = event.target.dataset.period;
                     let query;
 
+                    /* Je construis la requête selon la période */
                     if (period === 'classics') {
                         query = 'subject:classic_literature';
                     } else {
-                        query = `subject:fiction first_publish_year:${period}`;
+                        query = `subject:fiction first_publish_year:${escapeHtml(period)}`;
                     }
 
                     /* Je recharge le carrousel */
@@ -240,7 +266,7 @@ class App {
             });
         }
 
-        /* Filtres de la section "Populaires par genre" */
+        /* Je lie les filtres de la section "Populaires par genre" */
         const popularSection = document.querySelector('.popular-books');
 
         if (popularSection) {
@@ -255,7 +281,7 @@ class App {
 
                     /* Je récupère le genre sélectionné */
                     const genre = event.target.dataset.genre;
-                    const query = `subject:${genre}`;
+                    const query = `subject:${escapeHtml(genre)}`;
 
                     /* Je recharge le carrousel */
                     if (carousel) {
@@ -274,10 +300,11 @@ class App {
     initCatalogPage() {
         console.log('Initialisation page catalogue');
 
+        /* Je crée le contrôleur de livres */
         this.bookController = new BookController('.books-grid');
         this.bookController.init();
 
-        /* Je lie les périodes prédéfinies */
+        /* Je lie les filtres de périodes prédéfinies */
         this.bindPeriodFilters();
     }
 
@@ -291,12 +318,14 @@ class App {
 
         periodInputs.forEach(input => {
             input.addEventListener('change', (event) => {
+                /* Je récupère les données de période */
                 const yearFrom = event.target.dataset.from;
                 const yearTo = event.target.dataset.to;
 
                 const yearFromInput = document.querySelector('input[name="yearFrom"]');
                 const yearToInput = document.querySelector('input[name="yearTo"]');
 
+                /* Je remplis les champs d'année */
                 if (yearFromInput && yearTo) {
                     yearFromInput.value = yearFrom;
                 }
