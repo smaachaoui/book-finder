@@ -58,6 +58,9 @@ export class BookView {
 
         const workId = book.key ? book.key.replace('/works/', '') : '';
 
+        const wishlistClass = book.inWishlist ? 'btn-wishlist in-wishlist' : 'btn-wishlist';
+        const wishlistText = book.inWishlist ? 'Dans la wishlist ♥' : 'Ajouter à la wishlist';
+
         return `
             <article class="book-card" data-work-id="${workId}">
                 <div class="book-cover">
@@ -72,8 +75,8 @@ export class BookView {
                     <button type="button" class="btn-details" data-work-id="${workId}">
                         Voir détails
                     </button>
-                    <button type="button" class="btn-wishlist" data-work-id="${workId}">
-                        Ajouter à la wishlist
+                    <button type="button" class="${wishlistClass}" data-work-id="${workId}">
+                        ${wishlistText}
                     </button>
                 </div>
             </article>
