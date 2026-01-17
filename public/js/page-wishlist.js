@@ -1,30 +1,35 @@
-import { WishlistModel } from './models/WishlistModel.js';
-import { showToast, formatDate } from './utils/helpers.js';
-
 /**
- * WishlistPage
+ * PageWishlist
  * 
- * Gère l'affichage et les interactions de la page wishlist.
+ * Je gère l'affichage et les interactions de la page wishlist.
+ * J'utilise des fonctions de sécurité pour protéger contre les XSS.
  * 
- * @class WishlistPage
+ * @class PageWishlist
  */
-class WishlistPage {
+
+/* J'importe les modules nécessaires */
+import { WishlistModel } from './models/WishlistModel.js';
+import { showToast } from './utils/helpers.js';
+import { escapeHtml, sanitizeUrl } from './utils/security.js';
+
+class PageWishlist {
 
     /**
-     * Je crée une instance de WishlistPage.
+     * Je crée une instance de PageWishlist.
      * 
      * @constructor
      */
     constructor() {
         this.wishlistModel = new WishlistModel();
-        this.gridContainer = document.getElementById('wishlist-grid');
-        this.emptyContainer = document.getElementById('wishlist-empty');
-        this.totalElement = document.getElementById('wishlist-total');
+        this.gridContainer = document.querySelector('#wishlist-grid');
+        this.emptyContainer = document.querySelector('#wishlist-empty');
+        this.totalElement = document.querySelector('#wishlist-total');
+        this.clearButton = document.querySelector('#clear-wishlist');
         this.defaultCover = 'https://via.placeholder.com/150x200?text=No+Cover';
     }
 
     /**
-     * J'initialise la page.
+     * J'initialise la page wishlist.
      * 
      * @returns {void}
      */
@@ -34,62 +39,71 @@ class WishlistPage {
     }
 
     /**
-     * J'affiche les livres de la wishlist.
+     * J'affiche les livres de la wishlist de manière sécurisée.
      * 
      * @returns {void}
      */
     render() {
         const books = this.wishlistModel.getAll();
 
+        /* Je mets à jour le compteur */
         this.updateCount(books.length);
 
+        /* Je gère l'affichage selon le contenu de la wishlist */
         if (books.length === 0) {
             this.showEmpty();
             return;
         }
 
+        /* J'affiche la grille de livres */
         this.hideEmpty();
 
-        const html = books.map(book => this.renderCard(book)).join('');
+        /* Je génère le HTML de manière sécurisée */
+        const html = books.map(book => this.renderBookCard(book)).join('');
         this.gridContainer.innerHTML = html;
     }
 
     /**
-     * Je crée le HTML d'une carte de livre.
+     * Je crée le HTML d'une carte de livre sécurisée.
+     * J'échappe toutes les données pour prévenir les XSS.
      * 
      * @param {Object} book Les données du livre
      * @returns {string} Le HTML de la carte
      */
-    renderCard(book) {
+    renderBookCard(book) {
+        /* Je construis l'URL de la couverture de manière sécurisée */
         const coverUrl = book.cover_i
-            ? `https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`
+            ? sanitizeUrl(`https://covers.openlibrary.org/b/id/${escapeHtml(book.cover_i)}-M.jpg`)
             : this.defaultCover;
 
-        const authors = book.author_name && book.author_name.length > 0
-            ? book.author_name.join(', ')
+        /* J'échappe le titre pour prévenir les XSS */
+        const safeTitle = escapeHtml(book.title || 'Titre inconnu');
+
+        /* J'échappe les noms des auteurs */
+        const authors = book.author_name
+            ? escapeHtml(book.author_name.join(', '))
             : 'Auteur inconnu';
 
-        const year = book.first_publish_year || 'Date inconnue';
+        /* J'échappe l'année de publication */
+        const year = escapeHtml(book.first_publish_year || 'Date inconnue');
 
-        const addedDate = formatDate(book.addedAt);
+        /* J'échappe la clé du livre */
+        const safeKey = escapeHtml(book.key || '');
 
+        /* Je retourne le HTML avec toutes les données échappées */
         return `
-            <article class="wishlist-card" data-work-key="${book.key}">
+            <article class="wishlist-card" data-key="${safeKey}">
                 <div class="wishlist-card-cover">
-                    <img src="${coverUrl}" alt="Couverture de ${book.title}" loading="lazy">
+                    <img src="${coverUrl}" alt="Couverture de ${safeTitle}" loading="lazy">
                 </div>
                 <div class="wishlist-card-info">
-                    <h2 class="wishlist-card-title">${book.title}</h2>
+                    <h3 class="wishlist-card-title">${safeTitle}</h3>
                     <p class="wishlist-card-author">${authors}</p>
                     <p class="wishlist-card-year">${year}</p>
-                    <p class="wishlist-card-added">Ajouté le ${addedDate}</p>
                 </div>
                 <div class="wishlist-card-actions">
-                    <a href="catalog.html?q=${encodeURIComponent(book.title)}" class="btn-search">
-                        Rechercher
-                    </a>
-                    <button type="button" class="btn-remove" data-work-key="${book.key}">
-                        Retirer
+                    <button type="button" class="btn-remove" data-key="${safeKey}" aria-label="Retirer de la wishlist">
+                        ✕ Retirer
                     </button>
                 </div>
             </article>
@@ -102,136 +116,130 @@ class WishlistPage {
      * @returns {void}
      */
     bindEvents() {
-        /* Bouton vider la wishlist */
-        const clearBtn = document.getElementById('clear-wishlist');
-
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => this.handleClearAll());
-        }
-
-        /* Délégation pour les boutons de retrait */
+        /* Je lie les clics sur la grille via délégation */
         if (this.gridContainer) {
             this.gridContainer.addEventListener('click', (event) => {
                 const removeBtn = event.target.closest('.btn-remove');
 
                 if (removeBtn) {
-                    const workKey = removeBtn.dataset.workKey;
-                    this.handleRemove(workKey);
+                    const key = removeBtn.dataset.key;
+                    this.handleRemove(key);
                 }
             });
         }
+
+        /* Je lie le bouton de vidage de la wishlist */
+        if (this.clearButton) {
+            this.clearButton.addEventListener('click', () => this.handleClear());
+        }
     }
 
     /**
-     * Je gère le retrait d'un livre.
+     * Je gère la suppression d'un livre de la wishlist.
      * 
-     * @param {string} workKey L'identifiant du livre
+     * @param {string} key La clé du livre à supprimer
      * @returns {void}
      */
-    handleRemove(workKey) {
-        if (!workKey) {
+    handleRemove(key) {
+        /* Je vérifie que la clé est valide */
+        if (!key) {
             return;
         }
 
-        const result = this.wishlistModel.remove(workKey);
+        /* Je supprime le livre de la wishlist */
+        this.wishlistModel.remove(key);
 
-        if (result) {
-            /* Animation de retrait */
-            const card = this.gridContainer.querySelector(`[data-work-key="${workKey}"]`);
+        /* Je réaffiche la liste */
+        this.render();
 
-            if (card) {
-                card.classList.add('removing');
-
-                setTimeout(() => {
-                    this.render();
-                    showToast('Livre retiré de la wishlist', 'info');
-                }, 300);
-            }
-        }
+        /* J'affiche une notification de confirmation */
+        showToast('Livre retiré de la wishlist', 'info');
     }
 
     /**
-     * Je gère la suppression de tous les livres.
+     * Je gère le vidage complet de la wishlist.
      * 
      * @returns {void}
      */
-    handleClearAll() {
-        const count = this.wishlistModel.getCount();
-
-        if (count === 0) {
+    handleClear() {
+        /* Je demande confirmation à l'utilisateur */
+        if (!confirm('Voulez-vous vraiment vider votre wishlist ?')) {
             return;
         }
 
-        const confirmed = confirm(`Voulez-vous vraiment supprimer ${count} livre(s) de votre wishlist ?`);
+        /* Je vide la wishlist */
+        this.wishlistModel.clear();
 
-        if (confirmed) {
-            this.wishlistModel.clear();
-            this.render();
-            showToast('Wishlist vidée', 'info');
-        }
+        /* Je réaffiche la liste */
+        this.render();
+
+        /* J'affiche une notification de confirmation */
+        showToast('Wishlist vidée', 'info');
     }
 
     /**
-     * Je mets à jour le compteur.
+     * Je mets à jour le compteur de livres.
      * 
      * @param {number} count Le nombre de livres
      * @returns {void}
      */
     updateCount(count) {
         if (this.totalElement) {
-            this.totalElement.textContent = count;
+            /* Je m'assure que count est un nombre valide */
+            const safeCount = parseInt(count, 10) || 0;
+            this.totalElement.textContent = safeCount;
         }
     }
 
     /**
-     * J'affiche le message wishlist vide.
+     * J'affiche le message de wishlist vide.
      * 
      * @returns {void}
      */
     showEmpty() {
+        /* Je cache la grille */
         if (this.gridContainer) {
             this.gridContainer.style.display = 'none';
         }
 
+        /* J'affiche le message vide */
         if (this.emptyContainer) {
-            this.emptyContainer.style.display = 'flex';
+            this.emptyContainer.style.display = 'block';
         }
 
-        /* Cache le bouton vider */
-        const clearBtn = document.getElementById('clear-wishlist');
-
-        if (clearBtn) {
-            clearBtn.style.display = 'none';
+        /* Je cache le bouton de vidage */
+        if (this.clearButton) {
+            this.clearButton.style.display = 'none';
         }
     }
 
     /**
-     * Je cache le message wishlist vide.
+     * Je cache le message de wishlist vide.
      * 
      * @returns {void}
      */
     hideEmpty() {
+        /* J'affiche la grille */
         if (this.gridContainer) {
             this.gridContainer.style.display = 'grid';
         }
 
+        /* Je cache le message vide */
         if (this.emptyContainer) {
             this.emptyContainer.style.display = 'none';
         }
 
-        /* Affiche le bouton vider */
-        const clearBtn = document.getElementById('clear-wishlist');
-
-        if (clearBtn) {
-            clearBtn.style.display = 'block';
+        /* J'affiche le bouton de vidage */
+        if (this.clearButton) {
+            this.clearButton.style.display = 'block';
         }
     }
 }
 
 /**
- * Je lance la page wishlist quand le DOM est prêt.
+ * Je lance l'application quand le DOM est prêt.
  */
 document.addEventListener('DOMContentLoaded', () => {
-    const wishlistPage = new WishlistPage();
-    wishlistPage.init();
+    const page = new PageWishlist();
+    page.init();
 });

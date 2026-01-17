@@ -1,10 +1,15 @@
 /**
  * ModalView
  * 
- * Gère l'affichage des modales dans l'application.
+ * Je gère l'affichage des modales dans l'application.
+ * J'utilise des fonctions de sécurité pour prévenir les attaques XSS.
  * 
  * @class ModalView
  */
+
+/* J'importe les fonctions de sécurité pour échapper le contenu */
+import { escapeHtml, sanitizeUrl } from '../utils/security.js';
+
 export class ModalView {
 
     /**
@@ -25,11 +30,13 @@ export class ModalView {
      * @returns {void}
      */
     createModalContainer() {
+        /* Je vérifie si la modale existe déjà */
         if (document.querySelector('.modal-overlay')) {
             this.modal = document.querySelector('.modal-overlay');
             return;
         }
 
+        /* Je crée le HTML de la modale */
         const modalHTML = `
             <div class="modal-overlay" aria-hidden="true">
                 <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
@@ -37,12 +44,13 @@ export class ModalView {
                         ×
                     </button>
                     <div class="modal-content">
-                        <!-- Contenu dynamique -->
+                        <!-- J'insère le contenu dynamique ici -->
                     </div>
                 </div>
             </div>
         `;
 
+        /* J'insère la modale dans le DOM */
         document.body.insertAdjacentHTML('beforeend', modalHTML);
         this.modal = document.querySelector('.modal-overlay');
     }
@@ -53,25 +61,26 @@ export class ModalView {
      * @returns {void}
      */
     bindEvents() {
+        /* Je vérifie que la modale existe */
         if (!this.modal) {
             return;
         }
 
-        /* Fermeture au clic sur le fond */
+        /* Je gère la fermeture au clic sur le fond */
         this.modal.addEventListener('click', (event) => {
             if (event.target === this.modal) {
                 this.close();
             }
         });
 
-        /* Fermeture au clic sur le bouton */
+        /* Je gère la fermeture au clic sur le bouton */
         const closeBtn = this.modal.querySelector('.modal-close');
 
         if (closeBtn) {
             closeBtn.addEventListener('click', () => this.close());
         }
 
-        /* Fermeture avec la touche Escape */
+        /* Je gère la fermeture avec la touche Escape */
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape' && this.isOpen()) {
                 this.close();
@@ -80,7 +89,8 @@ export class ModalView {
     }
 
     /**
-     * J'affiche les détails d'un livre dans la modale.
+     * J'affiche les détails d'un livre dans la modale de manière sécurisée.
+     * J'échappe toutes les données pour prévenir les attaques XSS.
      * 
      * @param {Object} book Les données du livre
      * @param {Object} details Les détails supplémentaires du livre
@@ -90,37 +100,52 @@ export class ModalView {
     showBookDetails(book, details, inWishlist = false) {
         const content = this.modal.querySelector('.modal-content');
 
+        /* Je vérifie que le conteneur de contenu existe */
         if (!content) {
             return;
         }
 
+        /* Je construis l'URL de la couverture de manière sécurisée */
         const coverUrl = book.cover_i
-            ? `https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg`
+            ? sanitizeUrl(`https://covers.openlibrary.org/b/id/${escapeHtml(book.cover_i)}-L.jpg`)
             : this.defaultCover;
 
+        /* J'échappe le titre pour prévenir les XSS */
+        const safeTitle = escapeHtml(book.title || 'Titre inconnu');
+
+        /* J'échappe les noms des auteurs */
         const authors = book.author_name
-            ? book.author_name.join(', ')
+            ? escapeHtml(book.author_name.join(', '))
             : 'Auteur inconnu';
 
-        const year = book.first_publish_year || 'Date inconnue';
+        /* J'échappe l'année de publication */
+        const year = escapeHtml(book.first_publish_year || 'Date inconnue');
 
-        /* Extraction des détails */
-        const description = this.extractDescription(details);
-        const isbn = this.extractISBN(book, details);
-        const publisher = this.extractPublisher(book);
-        const pages = this.extractPages(book);
-        const languages = this.extractLanguages(book);
+        /* J'extrais et échappe les détails supplémentaires */
+        const description = escapeHtml(this.extractDescription(details));
+        const isbn = escapeHtml(this.extractISBN(book, details));
+        const publisher = escapeHtml(this.extractPublisher(book));
+        const pages = escapeHtml(this.extractPages(book));
+        const languages = escapeHtml(this.extractLanguages(book));
 
+        /* Je détermine l'état du bouton wishlist */
         const wishlistBtnText = inWishlist ? 'Retirer de la wishlist' : 'Ajouter à la wishlist';
         const wishlistBtnClass = inWishlist ? 'btn-wishlist in-wishlist' : 'btn-wishlist';
 
+        /* J'échappe la clé du livre pour l'attribut data */
+        const safeKey = escapeHtml(book.key || '');
+
+        /* Je construis l'URL Open Library de manière sécurisée */
+        const openLibraryUrl = sanitizeUrl(`https://openlibrary.org${book.key}`);
+
+        /* Je génère le HTML avec toutes les données échappées */
         content.innerHTML = `
             <div class="modal-book">
                 <div class="modal-book-cover">
-                    <img src="${coverUrl}" alt="Couverture de ${book.title}" loading="lazy">
+                    <img src="${coverUrl}" alt="Couverture de ${safeTitle}" loading="lazy">
                 </div>
                 <div class="modal-book-info">
-                    <h2 id="modal-title" class="modal-book-title">${book.title}</h2>
+                    <h2 id="modal-title" class="modal-book-title">${safeTitle}</h2>
                     <p class="modal-book-author">Par ${authors}</p>
                     <p class="modal-book-year">Publié en ${year}</p>
 
@@ -142,10 +167,10 @@ export class ModalView {
                     </div>
 
                     <div class="modal-book-actions">
-                        <button type="button" class="${wishlistBtnClass}" data-work-key="${book.key}">
+                        <button type="button" class="${wishlistBtnClass}" data-work-key="${safeKey}">
                             ${wishlistBtnText}
                         </button>
-                        <a href="https://openlibrary.org${book.key}" target="_blank" rel="noopener noreferrer" class="btn-external">
+                        <a href="${openLibraryUrl}" target="_blank" rel="noopener noreferrer" class="btn-external">
                             Voir sur Open Library →
                         </a>
                     </div>
@@ -153,6 +178,7 @@ export class ModalView {
             </div>
         `;
 
+        /* J'ouvre la modale */
         this.open();
     }
 
@@ -163,10 +189,12 @@ export class ModalView {
      * @returns {string|null} La description ou null
      */
     extractDescription(details) {
+        /* Je vérifie si les détails existent */
         if (!details) {
             return null;
         }
 
+        /* Je gère les différents formats de description */
         if (typeof details.description === 'string') {
             return details.description;
         }
@@ -186,14 +214,17 @@ export class ModalView {
      * @returns {string|null} L'ISBN ou null
      */
     extractISBN(book, details) {
+        /* Je cherche l'ISBN dans les données du livre */
         if (book.isbn && book.isbn.length > 0) {
             return book.isbn[0];
         }
 
+        /* Je cherche l'ISBN 13 dans les détails */
         if (details?.isbn_13 && details.isbn_13.length > 0) {
             return details.isbn_13[0];
         }
 
+        /* Je cherche l'ISBN 10 dans les détails */
         if (details?.isbn_10 && details.isbn_10.length > 0) {
             return details.isbn_10[0];
         }
@@ -230,13 +261,14 @@ export class ModalView {
     }
 
     /**
-     * J'extrais les langues du livre.
+     * J'extrais les langues du livre et les traduis.
      * 
      * @param {Object} book Les données du livre
      * @returns {string|null} Les langues ou null
      */
     extractLanguages(book) {
         if (book.language && book.language.length > 0) {
+            /* Je définis le mapping des codes de langue */
             const languageNames = {
                 'eng': 'Anglais',
                 'fre': 'Français',
@@ -252,6 +284,7 @@ export class ModalView {
                 'ara': 'Arabe'
             };
 
+            /* Je traduis les codes en noms de langue */
             return book.language
                 .slice(0, 3)
                 .map(code => languageNames[code] || code)
@@ -267,10 +300,12 @@ export class ModalView {
      * @returns {void}
      */
     open() {
+        /* Je vérifie que la modale existe */
         if (!this.modal) {
             return;
         }
 
+        /* J'active la modale et bloque le scroll */
         this.modal.classList.add('active');
         this.modal.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
@@ -282,10 +317,12 @@ export class ModalView {
      * @returns {void}
      */
     close() {
+        /* Je vérifie que la modale existe */
         if (!this.modal) {
             return;
         }
 
+        /* Je désactive la modale et restaure le scroll */
         this.modal.classList.remove('active');
         this.modal.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = 'auto';
@@ -309,10 +346,12 @@ export class ModalView {
     updateWishlistButton(inWishlist) {
         const btn = this.modal?.querySelector('.btn-wishlist');
 
+        /* Je vérifie que le bouton existe */
         if (!btn) {
             return;
         }
 
+        /* Je mets à jour l'apparence et le texte du bouton */
         if (inWishlist) {
             btn.classList.add('in-wishlist');
             btn.textContent = 'Retirer de la wishlist';
@@ -330,10 +369,12 @@ export class ModalView {
     showLoading() {
         const content = this.modal?.querySelector('.modal-content');
 
+        /* Je vérifie que le conteneur existe */
         if (!content) {
             return;
         }
 
+        /* J'affiche le spinner de chargement */
         content.innerHTML = `
             <div class="modal-loading">
                 <div class="spinner"></div>
@@ -341,11 +382,13 @@ export class ModalView {
             </div>
         `;
 
+        /* J'ouvre la modale */
         this.open();
     }
 
     /**
-     * J'affiche une erreur dans la modale.
+     * J'affiche une erreur dans la modale de manière sécurisée.
+     * J'échappe le message pour prévenir les XSS.
      * 
      * @param {string} message Le message d'erreur
      * @returns {void}
@@ -353,17 +396,23 @@ export class ModalView {
     showError(message) {
         const content = this.modal?.querySelector('.modal-content');
 
+        /* Je vérifie que le conteneur existe */
         if (!content) {
             return;
         }
 
+        /* J'échappe le message d'erreur pour la sécurité */
+        const safeMessage = escapeHtml(message);
+
+        /* J'affiche le message d'erreur */
         content.innerHTML = `
             <div class="modal-error">
-                <p>${message}</p>
+                <p>${safeMessage}</p>
                 <button type="button" class="btn-close-error">Fermer</button>
             </div>
         `;
 
+        /* Je lie l'événement de fermeture */
         const closeBtn = content.querySelector('.btn-close-error');
 
         if (closeBtn) {
