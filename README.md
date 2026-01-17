@@ -1,10 +1,10 @@
 # BookFinder
 
-BookFinder est un explorateur de livres connecte a l'API Open Library. Cette application permet de rechercher, decouvrir et sauvegarder des livres dans une wishlist personnelle.
+BookFinder est un explorateur de livres connecté a l'API Open Library. Cette application permet de rechercher, decouvrir et sauvegarder des livres dans une wishlist personnelle.
 
 ## Fonctionnalites
 
-- Recherche de livres en temps reel
+- Recherche de livres en temps réel
 - Affichage des couvertures, descriptions, auteurs
 - Informations detaillees (ISBN, annee, editeur, nombre de pages)
 - Ajout a une wishlist avec persistance localStorage
@@ -58,7 +58,7 @@ book-finder/
 
 ## Documentation
 
-La documentation technique complete est disponible dans le fichier DOCUMENTATION.md
+La documentation technique complete est disponible dans le fichier rapport_technique.md situé dans mon dossier documentation
 
 ## Auteur
 
